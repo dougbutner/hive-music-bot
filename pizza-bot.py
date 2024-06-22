@@ -362,74 +362,65 @@ def hive_posts_stream():
             continue
 
         # Check if the invoker meets requirements to use the bot
-        if not can_gift(author_account, parent_author):
-            print('Invoker doesnt meet minimum requirements')
-
-            min_balance = float(config['AccessLevel1']['MIN_TOKEN_BALANCE'])
-            min_staked = float(config['AccessLevel1']['MIN_TOKEN_STAKED'])
-
-            if invoker_level > 0 and daily_limit_reached(author_account,invoker_level):
-                # Check if invoker has reached daily limits
-                max_daily_gifts = config['AccessLevel%s' % invoker_level]['MAX_DAILY_GIFTS']
-
-                if use_spanish_templates:
-                    comment_body = esp_comment_daily_limit_template.render(token_name=TOKEN_NAME,
-                                                          target_account=author_account,
-                                                          max_daily_gifts=max_daily_gifts)
-                else:
-                    comment_body = comment_daily_limit_template.render(token_name=TOKEN_NAME,
-                                                                      target_account=author_account,
-                                                                      max_daily_gifts=max_daily_gifts)
-                message_body = '%s tried to send PIZZA but reached the daily limit.' % (author_account)
-
-                # disabled comments for this path to save RCs
-                print(message_body)
-                post_discord_message(ACCOUNT_NAME, message_body)
-
-            elif invoker_level > 0 and daily_limit_unique_reached(author_account, parent_author,invoker_level):
-                # Check if daily limit for unique tips has been reached
-                message_body = '%s tried to send PIZZA but reached the daily limit.' % (author_account)
-                print(message_body)
-                post_discord_message(ACCOUNT_NAME, message_body)
-
-            else:
-                # Tell the invoker how to gain access to the bot
-                if use_spanish_templates:
-                    comment_body = esp_comment_fail_template.render(token_name=TOKEN_NAME,
-                                                                target_account=author_account,
-                                                                min_balance=min_balance,
-                                                                min_staked=min_staked)
-                else:
-                    comment_body = comment_fail_template.render(token_name=TOKEN_NAME,
-                                                                target_account=author_account,
-                                                                min_balance=min_balance,
-                                                                min_staked=min_staked)
-                message_body = '%s tried to send PIZZA but didnt meet requirements.' % (author_account)
-
-                post_comment(post, ACCOUNT_NAME, comment_body)
-                print(message_body)
-                post_discord_message(ACCOUNT_NAME, message_body)
-
-            continue
-
+        # invoker_level = get_invoker_level(author_account)
+        # if is_block_listed(author_account) or is_block_listed(parent_author):
+        #     post_discord_message(ACCOUNT_NAME, 'Nope')
+        #     print('Invoker or recipient is on the block list')
+        #     continue
+        # if not can_gift(author_account, parent_author):
+        #     print('Invoker doesnt meet minimum requirements')
+        #     min_balance = float(config['AccessLevel1']['MIN_TOKEN_BALANCE'])
+        #     min_staked = float(config['AccessLevel1']['MIN_TOKEN_STAKED'])
+        #     if invoker_level > 0 and daily_limit_reached(author_account,invoker_level):
+        #         # Check if invoker has reached daily limits
+        #         max_daily_gifts = config['AccessLevel%s' % invoker_level]['MAX_DAILY_GIFTS']
+        #         if use_spanish_templates:
+        #             comment_body = esp_comment_daily_limit_template.render(token_name=TOKEN_NAME,
+        #                                                   target_account=author_account,
+        #                                                   max_daily_gifts=max_daily_gifts)
+        #         else:
+        #             comment_body = comment_daily_limit_template.render(token_name=TOKEN_NAME,
+        #                                                               target_account=author_account,
+        #                                                               max_daily_gifts=max_daily_gifts)
+        #         message_body = '%s tried to send PIZZA but reached the daily limit.' % (author_account)
+        #         # disabled comments for this path to save RCs
+        #         print(message_body)
+        #         post_discord_message(ACCOUNT_NAME, message_body)
+        #     elif invoker_level > 0 and daily_limit_unique_reached(author_account, parent_author,invoker_level):
+        #         # Check if daily limit for unique tips has been reached
+        #         message_body = '%s tried to send PIZZA but reached the daily limit.' % (author_account)
+        #         print(message_body)
+        #         post_discord_message(ACCOUNT_NAME, message_body)
+        #     else:
+        #         # Tell the invoker how to gain access to the bot
+        #         if use_spanish_templates:
+        #             comment_body = esp_comment_fail_template.render(token_name=TOKEN_NAME,
+        #                                                         target_account=author_account,
+        #                                                         min_balance=min_balance,
+        #                                                         min_staked=min_staked)
+        #         else:
+        #             comment_body = comment_fail_template.render(token_name=TOKEN_NAME,
+        #                                                         target_account=author_account,
+        #                                                         min_balance=min_balance,
+        #                                                         min_staked=min_staked)
+        #         message_body = '%s tried to send PIZZA but didnt meet requirements.' % (author_account)
+        #         post_comment(post, ACCOUNT_NAME, comment_body)
+        #         print(message_body)
+        #         post_discord_message(ACCOUNT_NAME, message_body)
+        #     continue
         # check how much TOKEN the bot has
         TOKEN_GIFT_AMOUNT = float(config['HiveEngine']['TOKEN_GIFT_AMOUNT'])
-        
-        bot_balance = float(Wallet(ACCOUNT_NAME).get_token(TOKEN_NAME)['balance'])
-        if bot_balance < TOKEN_GIFT_AMOUNT:
-
-            message_body = 'Bot wallet has run out of %s' % TOKEN_NAME
-            print(message_body)
-            post_discord_message(ACCOUNT_NAME, message_body)
-
-            if use_spanish_templates:
-                comment_body = esp_comment_outofstock_template.render(token_name=TOKEN_NAME)
-            else:
-                comment_body = comment_outofstock_template.render(token_name=TOKEN_NAME)
-            post_comment(post, ACCOUNT_NAME, comment_body)
-
-            continue
-
+        # bot_balance = float(Wallet(ACCOUNT_NAME).get_token(TOKEN_NAME)['balance'])
+        # if bot_balance < TOKEN_GIFT_AMOUNT:
+        #     message_body = 'Bot wallet has run out of %s' % TOKEN_NAME
+        #     print(message_body)
+        #     post_discord_message(ACCOUNT_NAME, message_body)
+        #     if use_spanish_templates:
+        #         comment_body = esp_comment_outofstock_template.render(token_name=TOKEN_NAME)
+        #     else:
+        #         comment_body = comment_outofstock_template.render(token_name=TOKEN_NAME)
+        #     post_comment(post, ACCOUNT_NAME, comment_body)
+        #     continue
         # transfer
 
         if ENABLE_TRANSFERS:
@@ -464,6 +455,9 @@ def hive_posts_stream():
             else:
                 comment_body = comment_success_template.render(token_name=TOKEN_NAME, target_account=parent_author, token_amount=TOKEN_GIFT_AMOUNT, author_account=author_account,  today_gift_count=today_gift_count, max_daily_gifts=max_daily_gifts)
         post_comment(post, ACCOUNT_NAME, comment_body)
+        # Add a delay to avoid commenting too quickly
+        time.sleep(4)  # Adjust the delay time as needed (10 seconds in this example)
+
 
         #break
 
