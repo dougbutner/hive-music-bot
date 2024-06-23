@@ -8,6 +8,7 @@ from beem.discussions import Query, Discussions_by_feed
 import beem.instance
 import os
 import jinja2
+import json
 import configparser
 import time
 import requests
@@ -165,24 +166,26 @@ def post_comment(parent_post, author, comment_body):
         print('Commenting!')
         parent_post.reply(body=comment_body, author=author)
         # sleep 3s before continuing
-        time.sleep(3)
+        time.sleep(4)
     else:
         print('Debug mode comment:')
         print(comment_body)
 
 def post_discord_message(username, message_body):
-    if not ENABLE_DISCORD:
-        return
+    return
+    #if not ENABLE_DISCORD:
+    #    return
 
-    payload = {
-        "username": username,
-        "content": message_body
-    }
+    #payload = {
+    #    "username": username,
+    #    "content": message_body
+    #}
 
-    try:
-        requests.post(WEBHOOK_URL, data=payload)
-    except:
-        print('Error while sending discord message. Check configs.')
+    #try:
+    #    requests.post(WEBHOOK_URL, data=payload)
+    #except:
+    #    print('Error while sending discord message. Check configs.')
+
 
 
 
@@ -303,6 +306,26 @@ def hive_posts_stream():
 
                 print('Found curation vote in block # %s - https://peakd.com/%s' % (op['block_num'],reply_identifier)) 
 
+                try:
+                    post = Comment(reply_identifier)
+                except beem.exceptions.ContentDoesNotExistsException:
+                    print('post not found!')
+                    continue
+
+                # if we already commented on this post, skip
+                if has_already_replied(post):
+                    print("We already replied!")
+                    continue
+
+                comment_body = comment_curation_template.render(token_name=TOKEN_NAME, target_account=parent_author, token_amount=0, author_account=author_account)
+
+                # Comment on the post
+                post_comment(post, ACCOUNT_NAME, comment_body)
+
+                # Add a delay to avoid commenting too quickly
+                time.sleep(4)  # Adjust the delay time as needed (4 seconds in this example)
+
+
             else:
                 # skip votes from other accounts
                 continue
@@ -327,9 +350,8 @@ def hive_posts_stream():
         # bail out if there is parent_author 
         if parent_author:
             continue
-        else:
-            debug_message = '%s Found music post: https://peakd.com/%s in block %s' % (BOT_COMMAND_STR, reply_identifier, op['block_num'])
-            print(debug_message)
+
+            # print(op)
         # skip tips sent to the bot itself
         if parent_author == ACCOUNT_NAME:
             continue
@@ -337,8 +359,25 @@ def hive_posts_stream():
         # check if spanish language comment templates should be used
         use_spanish_templates = 'body' in op.keys() and ESP_BOT_COMMAND_STR in op['body']
 
-        message_body = '%s asked to send a slice to %s' % (author_account, parent_author)
-        post_discord_message(ACCOUNT_NAME, message_body)
+        # message_body = '%s asked to send a slice to %s' % (author_account, parent_author)
+        # post_discord_message(ACCOUNT_NAME, message_body)
+
+        # Check if json_metadata exists and for 'music' tag in post metadata
+        if 'json_metadata' in op and op['json_metadata']:
+            try:
+                post_metadata = json.loads(op['json_metadata'])
+                tags = post_metadata.get('tags', [])
+                if 'music' not in tags:
+                    continue
+                else:
+                    debug_message = '%s Found music post: https://peakd.com/%s in block %s' % (BOT_COMMAND_STR, reply_identifier, op['block_num'])
+                    print(debug_message)
+                    time.sleep(4)
+            except json.JSONDecodeError:
+                continue
+        else:
+            continue
+
 
         try:
             post = Comment(reply_identifier)
